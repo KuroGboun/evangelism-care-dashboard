@@ -735,7 +735,7 @@ function renderSpend(p, key) {
 
   let syncError = spend.sync_error;
   if (syncError && typeof syncError === 'object') syncError = syncError.message ?? JSON.stringify(syncError);
-  slot('spend-error').textContent = syncError ? `Couldn't reach Telnyx last time: ${String(syncError)}` : '';
+  slot('spend-error').textContent = syncError ? `Last sync with Telnyx: ${String(syncError)}` : '';
 
   const unpriced = num(spend.unpriced_count);
   const rates = obj(est.rates);
