@@ -182,6 +182,11 @@ function fullPayload(key, now) {
     spend: {
       window: key === 'all' ? { ...allTime } : splitSpend(s),
       all_time: allTime,
+      estimated: {
+        window: { sms: 0.01, mms: 0.02, voice: 0, total: 0.03 },
+        all_time: { sms: 0.01, mms: 0.02, voice: 0, total: 0.03 },
+        rates: { sms_per_segment: 0.0055, mms: 0.02, voice_per_minute: 0.012, observed: { sms: true, mms: true, voice: false } },
+      },
       currency: 'USD',
       balance: 42.18,
       available_credit: 42.18,
@@ -256,6 +261,11 @@ function emptyPayload(key, now) {
     spend: {
       window: unsynced(),
       all_time: unsynced(),
+      estimated: {
+        window: { sms: 0, mms: 0, voice: 0, total: 0 },
+        all_time: { sms: 0, mms: 0, voice: 0, total: 0 },
+        rates: { sms_per_segment: 0.004, mms: 0.02, voice_per_minute: 0.012, observed: { sms: false, mms: false, voice: false } },
+      },
       currency: 'USD',
       balance: null,
       available_credit: null,

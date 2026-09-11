@@ -702,9 +702,24 @@ function renderSpend(p, key) {
   const moneyTile = (value, label, extra) =>
     tile({ value: money(value, currency), label, unknown: value === null || value === undefined, ...extra });
 
+  // Real charges plus the estimate for what Telnyx hasn't priced: the pastor
+  // reads one number, labelled "about" when part of it is a guess, with the
+  // real and guessed halves stated underneath.
+  const est = obj(spend.estimated);
+  const spendTile = (bucket, estimate, label) => {
+    const real = obj(bucket).total;
+    const guessed = num(obj(estimate).total);
+    if (real === null || real === undefined) return moneyTile(real, label, {});
+    if (guessed <= 0) return moneyTile(real, label, { split: split(bucket) });
+    return moneyTile(num(real) + guessed, `${label}, about`, {
+      explain: `Real ${amount(real)} · estimated ${amount(guessed)}`,
+      split: split(bucket),
+    });
+  };
+
   const tiles = [];
-  if (key !== 'all') tiles.push(moneyTile(obj(spend.window).total, w.spent, { split: split(spend.window) }));
-  tiles.push(moneyTile(obj(spend.all_time).total, 'Spent all time', { split: split(spend.all_time) }));
+  if (key !== 'all') tiles.push(spendTile(spend.window, est.window, w.spent));
+  tiles.push(spendTile(spend.all_time, est.all_time, 'Spent all time'));
   tiles.push(
     moneyTile(spend.balance, 'Balance', {
       explain: 'Credit left on the Telnyx account',
@@ -723,10 +738,33 @@ function renderSpend(p, key) {
   slot('spend-error').textContent = syncError ? `Couldn't reach Telnyx last time: ${String(syncError)}` : '';
 
   const unpriced = num(spend.unpriced_count);
+  const rates = obj(est.rates);
+  let rateLine = '';
+  if (unpriced > 0 && present(rates, 'sms_per_segment')) {
+    const own = Boolean(obj(rates.observed).sms);
+    rateLine =
+      ` They're estimated at ${perUnit(rates.sms_per_segment, currency)} per text segment, ` +
+      `${perUnit(rates.mms, currency)} per photo and ${perUnit(rates.voice_per_minute, currency)} per call minute — ` +
+      (own ? "this account's own rates so far." : "Telnyx's list prices.");
+  }
   slot('spend-unpriced').textContent =
     unpriced > 0
-      ? `${count(unpriced)} ${plural(unpriced, "text or call isn't", "texts or calls aren't")} priced yet, so the total may rise a little.`
+      ? `${count(unpriced)} ${plural(unpriced, "text or call hasn't", "texts or calls haven't")} been priced by Telnyx yet.${rateLine}`
       : '';
+}
+
+/** A unit rate like $0.004, which the money formatter would round to "under $0.01". */
+function perUnit(value, currency) {
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: 'currency',
+      currency: currency || 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 4,
+    }).format(num(value));
+  } catch {
+    return String(value);
+  }
 }
 
 function renderMeta(p) {
