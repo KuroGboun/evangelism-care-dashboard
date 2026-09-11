@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="referrer" content="no-referrer">
+  <meta name="color-scheme" content="light">
+  <title>Ministry Overview · Evangelism Care</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400..800&amp;display=swap">
+  <link rel="stylesheet" href="styles.css">
+  <script src="theme.js"></script>
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#sections">Skip to the figures</a>
+
+  <!-- Sign-in -->
+  <div id="signin-view" class="signin">
+    <div class="card signin-card">
+      <p class="eyebrow">Evangelism Care</p>
+      <h1 class="signin-title">Ministry Overview</h1>
+      <p class="sec-sub">Enter the password you were given to see the ministry's figures.</p>
+
+      <p id="boot-note" class="boot-note" role="status">Loading. If this stays here, check your connection and reload the page.</p>
+
+      <form id="signin-form" class="signin-form" method="post" hidden>
+        <!-- One field: the page signs in as the account named in config.js, so the
+             pastor is never asked for an address as well. -->
+        <label class="field">
+          <span class="field-label">Password</span>
+          <input id="password" name="password" type="password" autocomplete="current-password" autocapitalize="off" spellcheck="false" required>
+        </label>
+        <button id="signin-btn" class="btn btn-primary btn-block" type="submit">Sign in</button>
+      </form>
+      <p id="signin-status" class="form-status" role="alert"></p>
+
+      <div id="gate-retry" class="gate" hidden>
+        <p id="gate-text" class="form-status" role="alert"></p>
+        <div class="btn-row">
+          <button id="gate-retry-btn" class="btn btn-primary" type="button">Try again</button>
+          <button id="gate-signout-btn" class="btn btn-quiet" type="button">Sign out</button>
+        </div>
+      </div>
+    </div>
+    <p class="signin-foot">Only ministry admins can see these figures.</p>
+    <p class="signin-foot"><button class="btn btn-quiet btn-small theme-btn" type="button" aria-pressed="false">Dark mode</button></p>
+    <noscript><p class="signin-foot">This page needs JavaScript turned on.</p></noscript>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard-view" hidden>
+    <header class="topbar">
+      <div class="page topbar-inner">
+        <div class="brand">
+          <p class="eyebrow">Evangelism Care</p>
+          <h1 class="brand-title">Ministry Overview</h1>
+        </div>
+        <div class="account">
+          <p class="who">Signed in as <span id="who" class="who-name"></span></p>
+          <button class="btn btn-quiet btn-small theme-btn" type="button" aria-pressed="false">Dark mode</button>
+          <button id="signout-btn" class="btn btn-quiet btn-small" type="button">Sign out</button>
+        </div>
+        <div class="controls">
+          <div class="chips" role="group" aria-label="Time period">
+            <button class="chip" type="button" data-window="week" aria-pressed="false">This week</button>
+            <button class="chip" type="button" data-window="month" aria-pressed="true">This month</button>
+            <button class="chip" type="button" data-window="90d" aria-pressed="false">90 days</button>
+            <button class="chip" type="button" data-window="all" aria-pressed="false">All time</button>
+          </div>
+          <p class="window-range" data-slot="window-range"></p>
+          <div class="refresh">
+            <p id="updated" class="updated" aria-live="off"></p>
+            <button id="refresh-btn" class="btn btn-quiet btn-small" type="button">Refresh</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="page">
+      <p id="demo-banner" class="banner banner-info" hidden>Demo figures. Nothing here is real, and nothing is sent anywhere.</p>
+      <p id="stale-banner" class="banner banner-warn" role="status" hidden></p>
+
+      <section id="setup-card" class="card notice" aria-labelledby="setup-title" hidden>
+        <h2 id="setup-title" class="sec-title">Not set up yet</h2>
+        <p class="notice-text">The dashboard's data source isn't set up yet. Nothing is wrong with your account.</p>
+        <button class="btn btn-primary" type="button" data-action="retry">Try again</button>
+      </section>
+
+      <section id="error-card" class="card notice" aria-labelledby="error-title" hidden>
+        <h2 id="error-title" class="sec-title"></h2>
+        <p id="error-text" class="notice-text"></p>
+        <details id="error-details" class="error-details">
+          <summary>Technical details</summary>
+          <pre id="error-pre"></pre>
+        </details>
+        <button class="btn btn-primary" type="button" data-action="retry">Try again</button>
+      </section>
+
+      <main id="sections" class="grid is-loading" aria-busy="true">
+
+        <!-- 1. Hero -->
+        <section class="card hero span-4" aria-labelledby="hero-label">
+          <p class="hero-value" data-slot="hero-value" data-sk></p>
+          <h2 id="hero-label" class="hero-label">People in care</h2>
+          <p class="sec-sub">Everyone on the roster who hasn't opted out of texts.</p>
+          <p id="hero-empty" class="empty" data-reset-hidden hidden>No one has been added yet. Figures appear as the team adds people in the app.</p>
+        </section>
+
+        <!-- 2. Key figures -->
+        <section class="kpis span-8" aria-label="Key figures" data-slot="kpis" data-sk></section>
+
+        <!-- Past-due and quiet-carer names are deliberately not on this page:
+             the count is in the tiles above, and the names belong in the app,
+             where a carer can act on them. -->
+
+        <!-- 4. Journey -->
+        <section class="card sec span-6" aria-labelledby="journey-title">
+          <header class="sec-head">
+            <h2 id="journey-title" class="sec-title">Journey</h2>
+            <p class="sec-sub">Where people are on the journey from new to connected member.</p>
+          </header>
+          <div class="sk-block sk-chart" aria-hidden="true"></div>
+          <figure id="journey-fig" class="chart">
+            <div id="journey-box" class="chart-box">
+              <canvas id="journey-canvas" role="img" aria-label="Chart loading"></canvas>
+            </div>
+            <figcaption class="chart-caption">People at each stage of the journey.</figcaption>
+            <details class="table-twin">
+              <summary>Show as table</summary>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th scope="col">Stage</th><th scope="col" class="num">People</th></tr></thead>
+                  <tbody data-slot="journey-table"></tbody>
+                </table>
+              </div>
+            </details>
+          </figure>
+          <p id="journey-empty" class="empty" data-reset-hidden hidden>No journey figures yet.</p>
+        </section>
+
+        <!-- 5. Campuses -->
+        <section class="card sec span-6" aria-labelledby="campus-title">
+          <header class="sec-head">
+            <h2 id="campus-title" class="sec-title">Campuses</h2>
+            <p class="sec-sub">People in care, and the team's texts and calls, by campus.</p>
+          </header>
+          <div class="sk-block sk-chart" aria-hidden="true"></div>
+          <figure id="campus-fig" class="chart">
+            <div class="campus-wrap">
+              <div id="campus-box" class="chart-box">
+                <canvas id="campus-canvas" role="img" aria-label="Chart loading"></canvas>
+              </div>
+              <div class="campus-cols" data-slot="campus-cols" aria-hidden="true"></div>
+            </div>
+            <figcaption class="chart-caption">Bars show people in care at each campus.</figcaption>
+            <details class="table-twin">
+              <summary>Show as table</summary>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th scope="col">Campus</th><th scope="col" class="num">In care</th><th scope="col" class="num">Past due</th><th scope="col" class="num">Texts</th><th scope="col" class="num">Calls</th></tr></thead>
+                  <tbody data-slot="campus-table"></tbody>
+                </table>
+              </div>
+            </details>
+          </figure>
+          <p id="campus-empty" class="empty" data-reset-hidden hidden>No campuses yet.</p>
+        </section>
+
+        <!-- 6. Conversations -->
+        <section class="card sec span-12" aria-labelledby="conv-title">
+          <header class="sec-head">
+            <h2 id="conv-title" class="sec-title">Conversations</h2>
+            <p class="sec-sub">Texts and calls between the team and the people in their care.</p>
+          </header>
+          <div class="tiles tiles-conv" data-slot="conv-tiles" data-sk></div>
+          <div class="sk-block sk-chart" aria-hidden="true"></div>
+          <figure id="weekly-fig" class="chart">
+            <figcaption class="chart-caption-strong">The last 8 weeks</figcaption>
+            <ul class="legend" aria-hidden="true">
+              <li><span class="swatch swatch-a"></span>Texts</li>
+              <li><span class="swatch swatch-b"></span>Calls</li>
+            </ul>
+            <div id="weekly-box" class="chart-box chart-box-weekly">
+              <canvas id="weekly-canvas" role="img" aria-label="Chart loading"></canvas>
+            </div>
+            <details class="table-twin">
+              <summary>Show as table</summary>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th scope="col">Week of</th><th scope="col" class="num">Texts</th><th scope="col" class="num">Calls</th><th scope="col" class="num">New people</th></tr></thead>
+                  <tbody data-slot="weekly-table"></tbody>
+                </table>
+              </div>
+            </details>
+          </figure>
+        </section>
+
+        <!-- 7. Team -->
+        <section class="card sec span-7" aria-labelledby="team-title">
+          <header class="sec-head">
+            <h2 id="team-title" class="sec-title">Team</h2>
+            <p class="sec-sub">Who on the team is reaching out, and what they did most recently.</p>
+          </header>
+          <p class="team-headline" data-slot="team-headline" data-sk></p>
+          <div class="sk-block sk-chart" aria-hidden="true"></div>
+          <figure id="team-fig" class="chart">
+            <figcaption class="chart-caption-strong">Texts and calls by carer</figcaption>
+            <ul class="legend" aria-hidden="true">
+              <li><span class="swatch swatch-a"></span>Texts</li>
+              <li><span class="swatch swatch-b"></span>Calls</li>
+            </ul>
+            <div id="team-box" class="chart-box">
+              <canvas id="team-canvas" role="img" aria-label="Chart loading"></canvas>
+            </div>
+            <details class="table-twin">
+              <summary>Show as table</summary>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th scope="col">Carer</th><th scope="col">Campus</th><th scope="col" class="num">Texts</th><th scope="col" class="num">Calls</th><th scope="col" class="num">New people</th><th scope="col">Last active</th></tr></thead>
+                  <tbody data-slot="team-table"></tbody>
+                </table>
+              </div>
+            </details>
+          </figure>
+          <p id="team-empty" class="empty" data-reset-hidden hidden></p>
+          <div class="activity-block">
+            <h3 class="sub-title">Recent activity</h3>
+            <ul class="rows" data-slot="activity-list" data-sk></ul>
+          </div>
+        </section>
+
+        <!-- 8. Prayer -->
+        <section class="card sec span-5" aria-labelledby="prayer-title">
+          <header class="sec-head">
+            <h2 id="prayer-title" class="sec-title">Prayer</h2>
+            <p class="sec-sub">Prayer requests still waiting on a follow-up.</p>
+          </header>
+          <ul class="rows prayers" data-slot="prayer-list" data-sk></ul>
+        </section>
+
+        <!-- 9. Spend -->
+        <section class="card sec span-12" aria-labelledby="spend-title">
+          <header class="sec-head">
+            <h2 id="spend-title" class="sec-title">Spend</h2>
+            <p class="sec-sub">Real charges from Telnyx, the service behind the ministry phone number.</p>
+          </header>
+          <div class="tiles tiles-wide" data-slot="spend-tiles" data-sk></div>
+          <div class="spend-status">
+            <p class="spend-line" data-slot="spend-synced"></p>
+            <p class="spend-line tone-pastdue" data-slot="spend-error"></p>
+            <p class="spend-line" data-slot="spend-unpriced"></p>
+          </div>
+          <div class="spend-actions">
+            <button id="spend-btn" class="btn btn-quiet" type="button">Refresh spend</button>
+            <p id="spend-wait" class="spend-hint" aria-live="polite"></p>
+            <p id="spend-note" class="spend-hint" aria-live="polite"></p>
+          </div>
+        </section>
+      </main>
+
+      <footer class="foot">
+        <p>These figures come from what actually happened (texts delivered, calls answered). Nobody types them in.</p>
+        <p class="foot-meta" data-slot="meta-asof"></p>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>
